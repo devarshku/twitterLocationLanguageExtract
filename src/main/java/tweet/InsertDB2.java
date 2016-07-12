@@ -271,27 +271,21 @@ public final class InsertDB2 {
      * @throws Exception when connection to databse fails
      */
    public static int readExistingLocations(final Map<String, Integer> placeId) throws Exception {
-      Connection c = null;
       int locIdCount = 1;
       PreparedStatement prepSelectLoc = null;
-      try {
-         Class.forName("org.postgresql.Driver");
-         c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/Tweet", "postgres", "thanks123");
+      Class.forName("org.postgresql.Driver");
+      try (final Connection c =
+            DriverManager.getConnection("jdbc:postgresql://localhost:5432/Tweet", "postgres", "thanks123")) {
          System.out.println("Opened database successfully");
 
          prepSelectLoc = c.prepareStatement("SELECT * FROM LOCATION");
 
-         int id;
-         String city;
-         String state;
-         String country;
-
          final ResultSet rs = prepSelectLoc.executeQuery();
          while (rs.next()) {
-            id = rs.getInt("id");
-            city = rs.getString("city");
-            state = rs.getString("state");
-            country = rs.getString("country");
+            final int id = rs.getInt("id");
+            final String city = rs.getString("city");
+            String state = rs.getString("state");
+            final String country = rs.getString("country");
 
             if (state.equals(null)) {
                state = "null";
@@ -302,7 +296,6 @@ public final class InsertDB2 {
          }
 
          prepSelectLoc.close();
-         c.close();
       } catch (final Exception e) {
          e.printStackTrace();
          System.err.println(e.getClass().getName() + ": " + e.getMessage());
