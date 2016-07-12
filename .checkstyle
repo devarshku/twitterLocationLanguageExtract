@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fileset-config file-format-version="1.2.0" simple-config="false" sync-formatter="false">
+   <local-check-config name="DBIS Checkstyle Configuration" location="checkstyle.xml" type="project" description="">
+      <additional-data name="protect-config-file" value="false"/>
+   </local-check-config>
+   <fileset name="Java Sources (without Generated Sources)" enabled="true" check-config-name="DBIS Checkstyle Configuration" local="true">
+      <file-match-pattern match-pattern=".java$" include-pattern="true"/>
+      <file-match-pattern match-pattern="^.*/generated-sources/.*\.java$" include-pattern="false"/>
+      <file-match-pattern match-pattern="^.*\\generated-sources\\.*\.java$" include-pattern="false"/>
+      <file-match-pattern match-pattern="^target(?:/|\\)generated.*\.java$" include-pattern="false"/>
+   </fileset>
+</fileset-config>
