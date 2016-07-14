@@ -49,7 +49,6 @@ public final class ReadData {
          while ((line = rd.readLine()) != null) {
             result.append(line);
          }
-         rd.close();
          return result.toString();
       } catch (final Exception e) {
          return "error";

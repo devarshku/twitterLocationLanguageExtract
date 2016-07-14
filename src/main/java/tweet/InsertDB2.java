@@ -62,7 +62,6 @@ public final class InsertDB2 {
 
             countryState.put(country, states);
          }
-         bufferReader.close();
       } catch (final Exception e) {
 
          System.out.println("Error while reading file line by line:" + e.getMessage());
@@ -106,113 +105,119 @@ public final class InsertDB2 {
                if (len < 4) {
                   continue;
                }
-
-               // System.out.println(temp[temp.length - 1]);
                final String[] x = temp[temp.length - 1].split(" ");
                final int count = Integer.parseInt(x[x.length - 1]);
                lang = x[1];
 
+               temp[0] = temp[0].trim();
+               temp[1] = temp[1].trim();
                if (len == 4) {
                   if (x[0].equals("city") || x[0].equals("admin")) {
                      if (temp[1].equals(temp[0])) {
                         continue;
                      }
-                     city = temp[0].trim();
+                     city = temp[0];
                      state = null;
-                     country = temp[1].trim();
+                     country = temp[1];
                   } else if (x[0].equals("country") || x[0].equals("neighborhood") || x[0].equals("poi")) {
                      continue;
                   }
                } else if (len == 5) {
+                  temp[2] = temp[2].trim();
                   if (x[0].equals("city")) {
-                     if ((temp[1].trim()).equals(temp[2].trim())) {
-                        city = temp[0].trim();
+                     if ((temp[1]).equals(temp[2])) {
+                        city = temp[0];
                         state = null;
-                        country = temp[2].trim();
+                        country = temp[2];
                      } else {
-                        city = temp[0].trim();
-                        state = temp[1].trim();
-                        country = temp[2].trim();
+                        city = temp[0];
+                        state = temp[1];
+                        country = temp[2];
                      }
                   } else if (x[0].equals("coords")) {
-                     city = temp[0].trim();
-                     state = temp[1].trim();
-                     country = temp[2].trim();
+                     city = temp[0];
+                     state = temp[1];
+                     country = temp[2];
                   } else if (x[0].equals("neighborhood")) {
                      try {
 
-                        final ArrayList<String> states = countryState.get(temp[2].trim());
-                        if (states.contains(temp[1].trim())) {
-                           city = temp[0].trim();
-                           state = temp[1].trim();
-                           country = temp[2].trim();
+                        final ArrayList<String> states = countryState.get(temp[2]);
+                        if (states.contains(temp[1])) {
+                           city = temp[0];
+                           state = temp[1];
+                           country = temp[2];
                         } else {
-                           city = temp[1].trim();
+                           city = temp[1];
                            state = null;
-                           country = temp[2].trim();
+                           country = temp[2];
                         }
                      } catch (final Exception e) {
-                        city = temp[1].trim();
+                        city = temp[1];
                         state = null;
-                        country = temp[2].trim();
+                        country = temp[2];
                      }
                   } else if (x[0].equals("admin")) {
 
-                     if ((temp[2].trim()).equals(temp[1].trim())) {
+                     if ((temp[2]).equals(temp[1])) {
                         try {
-                           final ArrayList<String> states = countryState.get(temp[2].trim());
-                           if (states.contains(temp[0].trim())) {
+                           final ArrayList<String> states = countryState.get(temp[2]);
+                           if (states.contains(temp[0])) {
                               continue;
                            } else {
-                              city = temp[0].trim();
+                              city = temp[0];
                               state = null;
-                              country = temp[2].trim();
+                              country = temp[2];
                            }
                         } catch (final Exception e) {
-                           city = temp[0].trim();
+                           city = temp[0];
                            state = null;
-                           country = temp[2].trim();
+                           country = temp[2];
                         }
                      } else {
                         final int lim = temp[2].compareTo(temp[1]);
                         if (-10 <= lim && lim <= 10) {
-                           city = temp[0].trim();
+                           city = temp[0];
                            state = null;
-                           country = temp[2].trim();
+                           country = temp[2];
                         } else {
-                           city = temp[0].trim();
-                           state = temp[1].trim();
-                           country = temp[2].trim();
+                           city = temp[0];
+                           state = temp[1];
+                           country = temp[2];
                         }
                      }
                   } else if (x[0].equals("poi")) {
                      continue;
                   }
                } else if (len == 6) {
+                  temp[2] = temp[2].trim();
+                  temp[3] = temp[3].trim();
                   if (x[0].equals("city")) {
                      continue;
                   } else if (x[0].equals("country")) {
-                     city = temp[0].trim();
+                     city = temp[0];
                      state = null;
-                     country = temp[1].trim();
+                     country = temp[1];
                   } else if (x[0].equals("neighborhood")) {
-                     city = temp[2].trim();
+                     city = temp[2];
                      state = null;
-                     country = temp[3].trim();
+                     country = temp[3];
                   } else if (x[0].equals("admin")) {
                      continue;
                   } else if (x[0].equals("poi")) {
                      continue;
                   }
                } else if (len == 7) {
+                  temp[2] = temp[2].trim();
+                  temp[3] = temp[3].trim();
+                  temp[4] = temp[4].trim();
                   if (x[0].equals("city")) {
-                     city = temp[0].trim();
-                     state = temp[3].trim();
-                     country = temp[4].trim();
+                     city = temp[0];
+                     state = temp[3];
+                     country = temp[4];
                   } else if (x[0].equals("neighborhood")) {
-                     city = temp[2].trim();
+                     city = temp[2];
                      state = null;
-                     country = temp[3].trim();
+                     country = temp[3];
                   } else if (x[0].equals("poi")) {
                      continue;
                   }
@@ -233,7 +238,6 @@ public final class InsertDB2 {
             }
 
             System.out.println(entries);
-            bufferReader.close();
          } catch (final Exception e) {
             System.out.println("Error while reading file line by line:" + e.getMessage());
             e.printStackTrace();
@@ -364,8 +368,6 @@ public final class InsertDB2 {
          prepInsertTweet.close();
 
          System.out.println("Done");
-
-         c.close();
       } catch (final Exception e) {
          e.printStackTrace();
          System.err.println(e.getClass().getName() + ": " + e.getMessage());
