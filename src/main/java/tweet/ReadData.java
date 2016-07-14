@@ -6,7 +6,6 @@ package tweet;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-//import java.lang.Thread;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -41,12 +40,11 @@ public final class ReadData {
     * @throws Exception if the reponse is an error
     */
    public static String getHTML(final String urlToRead) throws Exception {
-      try {
-         final StringBuilder result = new StringBuilder();
-         final URL url = new URL(urlToRead);
-         final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-         conn.setRequestMethod("GET");
-         final BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+      final StringBuilder result = new StringBuilder();
+      final URL url = new URL(urlToRead);
+      final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      conn.setRequestMethod("GET");
+      try (final BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
          String line;
          while ((line = rd.readLine()) != null) {
             result.append(line);
@@ -64,14 +62,9 @@ public final class ReadData {
     * @param tweetPlace map containing location and language as the key and the count of tweets as the value
     */
    public static void readFromFile(final File file, final Map<String, Integer> tweetPlace) {
-      String[] c;
-      try {
-         final Reader inputFile = new InputStreamReader(new FileInputStream(file), "UTF-8");
+      try (final Reader inputFile = new InputStreamReader(new FileInputStream(file), "UTF-8")) {
          final BufferedReader bufferReader = new BufferedReader(inputFile);
          String line;
-         String lang;
-         String latitude;
-         String longitude;
          String input = null;
          int tweetCount = 0;
          int nullCount = 0;
@@ -81,7 +74,7 @@ public final class ReadData {
          int latlongnull = 0;
 
          while ((line = bufferReader.readLine()) != null) {
-            c = line.split("\t");
+            final String[] c = line.split("\t");
             tweetCount++;
 
             // tweet place-10th field
@@ -94,8 +87,8 @@ public final class ReadData {
                   coordsTotal++;
 
                   final String[] tempInp = c[5].split(",");
-                  latitude = tempInp[0];
-                  longitude = tempInp[1];
+                  final String latitude = tempInp[0];
+                  final String longitude = tempInp[1];
 
                   int i;
                   String[] temp;
@@ -162,6 +155,7 @@ public final class ReadData {
                input = c[9];
             }
 
+            String lang;
             try {
                final Detector detector = DetectorFactory.create();
                detector.append(c[2]);

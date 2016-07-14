@@ -6,9 +6,7 @@ package tweet;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -19,10 +17,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-//import java.io.BufferedWriter;
-//import java.io.File;
-//import java.io.FileWriter;
-//import java.sql.Date;
 
 /**
  * Class to insert locations and languages along with their tweet-count into a database.
@@ -30,6 +24,11 @@ import java.util.Map.Entry;
  * @version 1.0
  */
 public final class InsertDB2 {
+   /**
+    * Variable that has the relative location and file name
+    * to build a dictionary of the Country and its corresponding states.
+    */
+   public static final String COUNTRY_STATE_FILE = "asdf";
    /**
     * Constructor to ensure no objects of this class are created.
     */
@@ -41,33 +40,23 @@ public final class InsertDB2 {
      * @return map with key as country name and value as a list of states/provinces of that country.
      */
    public static Map<String, ArrayList<String>> createCountryState() {
-      final String fileName = "src/main/resources/pls.txt";
-      String[] c;
       String line = "";
       final Map<String, ArrayList<String>> countryState = new HashMap<String, ArrayList<String>>();
-
-      try (Reader inputFile = new InputStreamReader(new FileInputStream(fileName), "UTF-8")) {
-         // FileReader inputFile = new FileReader(fileName);
-         final BufferedReader bufferReader = new BufferedReader(inputFile);
-
+      try (BufferedReader bufferReader = new BufferedReader(
+            new InputStreamReader(new FileInputStream(COUNTRY_STATE_FILE), "UTF-8"))) {
          while ((line = bufferReader.readLine()) != null) {
-            String country;
-            String t;
-            final String[] temp;
-            final ArrayList<String> states = new ArrayList<String>();
-            int i;
+            final String[] c = line.split(",");
 
-            c = line.split(",");
-
-            country = c[0];
+            String country = c[0];
             country = country.substring(3, country.length() - 1);
-            t = c[5];
+            String t = c[5];
             t = t.substring(2, t.length() - 1);
 
             t = t.replace('|', ',');
-            temp = t.split(",");
+            final String[] temp = t.split(",");
 
-            for (i = 0; i < temp.length; i++) {
+            final ArrayList<String> states = new ArrayList<String>();
+            for (int i = 0; i < temp.length; i++) {
                states.add(temp[i]);
             }
 
@@ -104,11 +93,9 @@ public final class InsertDB2 {
          String[] temp = new String[7];
          int entries = 0;
          int len;
-         try {
-            final FileReader inputFile = new FileReader("tweet_place.txt");
-            final BufferedReader bufferReader = new BufferedReader(inputFile);
+         try (final BufferedReader bufferReader = new BufferedReader(
+               new InputStreamReader(new FileInputStream("tweet_place.txt"), "UTF-8"))) {
             String line;
-            int count;
 
             while ((line = bufferReader.readLine()) != null) {
 
@@ -122,7 +109,7 @@ public final class InsertDB2 {
 
                // System.out.println(temp[temp.length - 1]);
                final String[] x = temp[temp.length - 1].split(" ");
-               count = Integer.parseInt(x[x.length - 1]);
+               final int count = Integer.parseInt(x[x.length - 1]);
                lang = x[1];
 
                if (len == 4) {
@@ -315,23 +302,19 @@ public final class InsertDB2 {
       final java.util.Date ud = fmt.parse("09/01/2016");
       final java.sql.Date sd = new java.sql.Date(ud.getTime());
 
-      String[] fields;
-      String location;
       int locIdCount = 1;
-      int locId;
       int currCount = 0;
       final Map<String, Integer> placeId = new HashMap<String, Integer>();
 
       // To use when run for multiple days
       // locIdCount = readExistingLocations(placeId);
 
-      Connection c = null;
       PreparedStatement prepInsertLoc = null;
       PreparedStatement prepInsertTweet = null;
-      try {
-         Class.forName("org.postgresql.Driver");
-         c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/Tweet", "postgres", "thanks123");
-         System.out.println("Opened database successfully");
+      Class.forName("org.postgresql.Driver");
+      try (Connection c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/Tweet",
+            "postgres", "thanks123")) {
+        System.out.println("Opened database successfully");
 
          prepInsertLoc = c.prepareStatement("INSERT INTO LOCATION (ID, COUNTRY, STATE, CITY) VALUES(?,?,?,?)");
          prepInsertTweet = c
@@ -341,11 +324,12 @@ public final class InsertDB2 {
          while (iterator.hasNext()) {
             final Entry<String, Integer> myentry = iterator.next();
 
-            fields = myentry.getKey().split(",");
+            final String[] fields = myentry.getKey().split(",");
             currCount = myentry.getValue();
 
-            location = fields[0] + "," + fields[1] + "," + fields[2];
+            final String location = fields[0] + "," + fields[1] + "," + fields[2];
 
+            int locId;
             try {
                locId = placeId.get(location);
             } catch (final Exception e) {
@@ -373,7 +357,6 @@ public final class InsertDB2 {
             prepInsertTweet.setDate(3, sd);
             prepInsertTweet.setInt(4, currCount);
 
-            // placeCount.remove(myentry.getKey());
             prepInsertTweet.executeUpdate();
          }
 
@@ -404,210 +387,3 @@ public final class InsertDB2 {
       // Preferred to use
    }
 }
-
-
-//public static void writeToFile(String filename, Map<String, Integer> myhash) {
-// try {
-// File file = new File(filename);
-// file.createNewFile();
-//
-// FileWriter fw = new FileWriter(file.getAbsoluteFile());
-// BufferedWriter bw = new BufferedWriter(fw);
-//
-// Iterator<Entry<String, Integer>> iterator = myhash.entrySet().iterator();
-// while (iterator.hasNext()) {
-// Entry<String, Integer> myentry = iterator.next();
-//
-// String content = myentry.getKey() + "," + myentry.getValue() + "\n";
-// bw.write(content);
-// }
-//
-// bw.close();
-// } catch (Exception e) {
-// e.printStackTrace();
-// }
-// }
-
-// public static Map<String, Integer> modifyDictionary(Map<String, Integer> placeCount) {
-// String[] fields;
-// String[] temp;
-// String key;
-// Map<String, Integer> cleanPlaceCount = new HashMap<String, Integer>();
-//
-// Iterator<Entry<String, Integer>> iterator = placeCount.entrySet().iterator();
-// while (iterator.hasNext()) {
-// Entry<String, Integer> myentry = iterator.next();
-// fields = myentry.getKey().split(",");
-//
-// key = myentry.getKey();
-//
-// if (fields[1].equals("null")) {
-// Iterator<Entry<String, Integer>> iterator2 = placeCount.entrySet().iterator();
-// while (iterator2.hasNext()) {
-// Entry<String, Integer> myentry2 = iterator2.next();
-// temp = myentry2.getKey().split(",");
-//
-// if (!(temp[1].equals("null"))) {
-// if (temp[0].equals(fields[0]) && temp[2].equals(fields[2])) {
-// key = myentry2.getKey();
-// break;
-// }
-// }
-// }
-// }
-//
-// try {
-// int c = cleanPlaceCount.get(key);
-// cleanPlaceCount.put(key, c + myentry.getValue());
-// } catch (Exception e) {
-// cleanPlaceCount.put(key, myentry.getValue());
-// }
-// }
-//
-// return cleanPlaceCount;
-// }
-
-// public static void slelectedInsert(Map<String, Integer> placeCount) throws Exception {
-//
-// java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("dd/MM/yyyy");
-// java.util.Date ud = fmt.parse("09/01/2016");
-// java.sql.Date sd = new java.sql.Date(ud.getTime());
-//
-// String[] fields;
-// String location;
-// int locIdCount = 1;
-// int locId;
-// int currCount = 0;
-// Map<String, Integer> placeId = new HashMap<String, Integer>();
-// Map<String, Integer> placeNull = new HashMap<String, Integer>();
-//
-// Connection c = null;
-// PreparedStatement prepInsertLoc = null;
-// PreparedStatement prepSelectLoc = null;
-// PreparedStatement prepInsertTweet = null;
-// PreparedStatement prepUpdateTweetCount = null;
-// try {
-// Class.forName("org.postgresql.Driver");
-// c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/Tweet", "postgres", "thanks123");
-// System.out.println("Opened database successfully");
-//
-// prepInsertLoc = c.prepareStatement("INSERT INTO LOCATION (ID, COUNTRY, STATE, CITY) VALUES(?,?,?,?)");
-// prepInsertTweet = c
-// .prepareStatement("INSERT INTO TWEETCOUNT (LOCATION_ID, LANG, TWEETDATE, COUNT) VALUES(?,?,?,?)");
-// prepSelectLoc = c.prepareStatement("SELECT * FROM LOCATION WHERE COUNTRY = (?) AND CITY = (?)");
-// prepUpdateTweetCount = c
-// .prepareStatement("UPDATE TWEETCOUNT set count = count + (?) WHERE location_id= (?) AND lang = (?)
-// AND tweetdate = (?)");
-//
-// Iterator<Entry<String, Integer>> iterator = placeCount.entrySet().iterator();
-// while (iterator.hasNext()) {
-// Entry<String, Integer> myentry = iterator.next();
-//
-// fields = myentry.getKey().split(",");
-// currCount = myentry.getValue();
-//
-// location = fields[0] + "," + fields[1] + "," + fields[2];
-//
-// if (!(fields[1].equals("null"))) {
-// try {
-// locId = placeId.get(location);
-// } catch (Exception e) {
-// locId = locIdCount;
-// locIdCount++;
-//
-// placeId.put(location, locId);
-//
-// prepInsertLoc.setInt(1, locId);
-// prepInsertLoc.setString(2, fields[2]);
-// prepInsertLoc.setString(4, fields[0]);
-//
-// if (fields[1].equals("null")) {
-// prepInsertLoc.setNull(3, Types.VARCHAR);
-// // placeId.
-// } else {
-// prepInsertLoc.setString(3, fields[1]);
-// }
-//
-// prepInsertLoc.executeUpdate();
-// }
-//
-// prepInsertTweet.setInt(1, locId);
-// prepInsertTweet.setString(2, fields[3]);
-// prepInsertTweet.setDate(3, sd);
-// prepInsertTweet.setInt(4, currCount);
-//
-// // placeCount.remove(myentry.getKey());
-// prepInsertTweet.executeUpdate();
-// } else{
-// placeNull.put(myentry.getKey(), myentry.getValue());
-// }
-// }
-//
-// iterator = placeNull.entrySet().iterator();
-// while (iterator.hasNext()) {
-// Entry<String, Integer> myentry = iterator.next();
-//
-// fields = myentry.getKey().split(",");
-// currCount = myentry.getValue();
-//
-// location = fields[0] + "," + fields[1] + "," + fields[2];
-// locId = 0;
-//
-// prepSelectLoc.setString(1, fields[2]);
-// prepSelectLoc.setString(2, fields[0]);
-// ResultSet rs = prepSelectLoc.executeQuery();
-// while (rs.next()) {
-// locId = rs.getInt("id");
-// prepUpdateTweetCount.setInt(1, currCount);
-// prepUpdateTweetCount.setInt(2, locId);
-// prepUpdateTweetCount.setString(3, fields[3]);
-// prepUpdateTweetCount.setDate(4, sd);
-//
-// prepUpdateTweetCount.execute();
-// }
-//
-// if (locId == 0) {
-// try {
-// locId = placeId.get(location);
-// } catch (Exception e) {
-// locId = locIdCount;
-// locIdCount++;
-//
-// placeId.put(location, locId);
-//
-// prepInsertLoc.setInt(1, locId);
-// prepInsertLoc.setString(2, fields[2]);
-// prepInsertLoc.setString(4, fields[0]);
-//
-// if (fields[1].equals("null")) {
-// prepInsertLoc.setNull(3, Types.VARCHAR);
-// // placeId.
-// } else {
-// prepInsertLoc.setString(3, fields[1]);
-// }
-//
-// prepInsertLoc.executeUpdate();
-// }
-//
-// prepInsertTweet.setInt(1, locId);
-// prepInsertTweet.setString(2, fields[3]);
-// prepInsertTweet.setDate(3, sd);
-// prepInsertTweet.setInt(4, currCount);
-//
-// // placeCount.remove(myentry.getKey());
-// prepInsertTweet.executeUpdate();
-// }
-// }
-//
-// prepInsertLoc.close();
-// prepInsertTweet.close();
-//
-// System.out.println("Done");
-//
-// c.close();
-// } catch (Exception e) {
-// e.printStackTrace();
-// System.err.println(e.getClass().getName() + ": " + e.getMessage());
-// System.exit(0);
-// }
-// }
