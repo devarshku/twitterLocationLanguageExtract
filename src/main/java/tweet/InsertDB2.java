@@ -6,6 +6,7 @@ package tweet;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -109,8 +110,13 @@ public final class InsertDB2 {
                final int count = Integer.parseInt(x[x.length - 1]);
                lang = x[1];
 
-               temp[0] = temp[0].trim();
-               temp[1] = temp[1].trim();
+               if (x[0].equals("poi")) {
+                  continue;
+               }
+
+               for (int i = 0; i < len; i++) {
+                  temp[i] = temp[i].trim();
+               }
                if (len == 4) {
                   if (x[0].equals("city") || x[0].equals("admin")) {
                      if (temp[1].equals(temp[0])) {
@@ -119,12 +125,11 @@ public final class InsertDB2 {
                      city = temp[0];
                      state = null;
                      country = temp[1];
-                  } else if (x[0].equals("country") || x[0].equals("neighborhood") || x[0].equals("poi")) {
+                  } else if (x[0].equals("country") || x[0].equals("neighborhood")) {
                      continue;
                   }
                } else if (len == 5) {
-                  temp[2] = temp[2].trim();
-                  if (x[0].equals("city")) {
+                   if (x[0].equals("city")) {
                      if ((temp[1]).equals(temp[2])) {
                         city = temp[0];
                         state = null;
@@ -151,7 +156,11 @@ public final class InsertDB2 {
                            state = null;
                            country = temp[2];
                         }
-                     } catch (final Exception e) {
+                     } catch (final NullPointerException e) {
+                        /* Case when country doesn't exist in the country-state
+                        dictionary (because of spelling/language difference maybe)
+                        and .contains function throws a Null pointer exception
+                        */
                         city = temp[1];
                         state = null;
                         country = temp[2];
@@ -168,7 +177,11 @@ public final class InsertDB2 {
                               state = null;
                               country = temp[2];
                            }
-                        } catch (final Exception e) {
+                        } catch (final NullPointerException e) {
+                           /* Case when country doesn't exist in the country-state
+                           dictionary (because of spelling/language difference maybe)
+                           and .contains function throws a Null pointer exception
+                           */
                            city = temp[0];
                            state = null;
                            country = temp[2];
@@ -176,6 +189,8 @@ public final class InsertDB2 {
                      } else {
                         final int lim = temp[2].compareTo(temp[1]);
                         if (-10 <= lim && lim <= 10) {
+                           /* Should be Lavenshtein distance <= 3 but I need to add the Maven
+                            * dependencies which I am not doing correctly. So, I need to fix this. */
                            city = temp[0];
                            state = null;
                            country = temp[2];
@@ -185,12 +200,8 @@ public final class InsertDB2 {
                            country = temp[2];
                         }
                      }
-                  } else if (x[0].equals("poi")) {
-                     continue;
                   }
                } else if (len == 6) {
-                  temp[2] = temp[2].trim();
-                  temp[3] = temp[3].trim();
                   if (x[0].equals("city")) {
                      continue;
                   } else if (x[0].equals("country")) {
@@ -203,13 +214,8 @@ public final class InsertDB2 {
                      country = temp[3];
                   } else if (x[0].equals("admin")) {
                      continue;
-                  } else if (x[0].equals("poi")) {
-                     continue;
                   }
                } else if (len == 7) {
-                  temp[2] = temp[2].trim();
-                  temp[3] = temp[3].trim();
-                  temp[4] = temp[4].trim();
                   if (x[0].equals("city")) {
                      city = temp[0];
                      state = temp[3];
@@ -218,8 +224,6 @@ public final class InsertDB2 {
                      city = temp[2];
                      state = null;
                      country = temp[3];
-                  } else if (x[0].equals("poi")) {
-                     continue;
                   }
                }
 
@@ -238,7 +242,7 @@ public final class InsertDB2 {
             }
 
             System.out.println(entries);
-         } catch (final Exception e) {
+         } catch (final IOException e) {
             System.out.println("Error while reading file line by line:" + e.getMessage());
             e.printStackTrace();
          }
@@ -259,7 +263,7 @@ public final class InsertDB2 {
      *  Function that enters all existing location in the databse into a dictionary.
      * @param placeId a map that contains all locations that are in the database along with their id
      * @return the id for a new location
-     * @throws Exception when connection to databse fails
+     * @throws Exception when connection to database fails
      */
    public static int readExistingLocations(final Map<String, Integer> placeId) throws Exception {
       int locIdCount = 1;
@@ -310,7 +314,7 @@ public final class InsertDB2 {
       int currCount = 0;
       final Map<String, Integer> placeId = new HashMap<String, Integer>();
 
-      // To use when run for multiple days
+      // XXX: To use the function call below when run for multiple days.
       // locIdCount = readExistingLocations(placeId);
 
       PreparedStatement prepInsertLoc = null;

@@ -18,6 +18,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.xml.ws.http.HTTPException;
+
 import com.cybozu.labs.langdetect.Detector;
 import com.cybozu.labs.langdetect.DetectorFactory;
 
@@ -50,7 +52,7 @@ public final class ReadData {
             result.append(line);
          }
          return result.toString();
-      } catch (final Exception e) {
+      } catch (final HTTPException e) {
          return "error";
       }
    }
