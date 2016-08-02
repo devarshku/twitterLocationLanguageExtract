@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import de.linuxusers.levenshtein.util.SimpleLevenshtein;
+
 /**
  * Class to insert locations and languages along with their tweet-count into a database.
  * @author devarsh.k.u devarsh95@gmail.com, devarsh.karekal-umashankar@uni-konstanz.de
@@ -187,10 +189,7 @@ public final class InsertDB2 {
                            country = temp[2];
                         }
                      } else {
-                        final int lim = temp[2].compareTo(temp[1]);
-                        if (-10 <= lim && lim <= 10) {
-                           /* Should be Lavenshtein distance <= 3 but I need to add the Maven
-                            * dependencies which I am not doing correctly. So, I need to fix this. */
+                        if (SimpleLevenshtein.getStringDistance(temp[2], temp[1]) <= 3) {
                            city = temp[0];
                            state = null;
                            country = temp[2];
@@ -389,7 +388,5 @@ public final class InsertDB2 {
       insert(placeCount);
       // placeCount = modifyDictionary(placeCount);
       // System.out.println(placeCount.size());
-      // slelectedInsert(placeCount);
-      // Preferred to use
    }
 }
